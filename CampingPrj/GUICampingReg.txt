@@ -1,0 +1,236 @@
+package camping;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.GridLayout;
+import java.awt.HeadlessException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+
+/***********************************************************************
+ * This is the GUI of the program that would allow an interface to show
+ * the features of the camping program
+ * 
+ * @author Tiesha Anderson, Atone Joryman, Jessica Ritcksgers 
+ * @version Fall 2017 
+ **********************************************************************/
+public class GUICampingReg extends JFrame implements ActionListener {
+	// declare GUI components (menu items, buttons, etc.) needed
+	// constructor method that prepares the GUI
+    // event listeners and other methods needed to build the GUI
+	
+	/** menu bar at the top of JFram**/
+	private JMenuBar menuBar;
+	
+	/** drop down menu to choose to save or load **/ 
+	private JMenu file;
+	
+	/** menu option to check in as a RV or tent **/
+	private JMenu checkIn;
+	
+	/** menu item to save a file as Serializable **/ 
+	private JMenuItem save;
+	
+	/** menu item to load a file from Serializable file **/ 
+	private JMenuItem load;
+	
+	/** menu item to save a file as a text **/ 
+	private JMenuItem saveText;
+	
+	/** menu item to save a file from text file **/ 
+	private JMenuItem loadText;
+
+	/** to check in under rv **/
+	private JMenuItem rv;
+	
+	/** to check in under tent **/
+	private JMenuItem tent;
+	
+	/** reference to Site class**/
+	private Site campingSite;
+
+	/** exit out program item **/
+	private JMenuItem exitItem;
+
+	/** set the list into a table**/
+	private JTable jListTable;
+
+	/** adjust to a scroll pane once too big**/
+	private JScrollPane scroll;
+	
+	/** reference to the dialog check in rv**/
+	private DialogCheckInRv checkRv;
+	
+	/** reference to the dialog check in tent**/
+	private DialogCheckInTent checkTent;
+
+	/**refer to SiteModel class to add to list**/
+	private SiteModel model;
+	
+	private JButton undo;
+	
+	private JButton delete;
+
+	private JPanel panel;
+
+	
+/***********************************************************************
+ * This constructor will provide the GUI needed to see the items on 
+ * the JFrame.
+ * 
+ **********************************************************************/
+
+	public GUICampingReg() {
+		//set up otions on the screen
+		file = new JMenu("File");
+		checkIn = new JMenu("Check In");
+		load = new JMenuItem("Open Serial");
+		save = new JMenuItem("Save Serial");
+		exitItem = new JMenuItem("Exit!");
+		loadText = new JMenuItem("Open Text");
+		saveText = new JMenuItem("Save Text");
+		rv= new JMenuItem("RV");
+		tent= new JMenuItem("Tent");
+		panel = new JPanel();
+		
+		undo = new JButton("Undo");
+		delete = new JButton("Delete");
+		//set the list
+		model = new SiteModel();
+		//set up a different panel than this frame
+		panel.setLayout(new GridLayout(1,2));
+		
+		setLayout(new BorderLayout());
+		
+		
+		//for the file
+		file.add(load);
+		file.add(save);
+		file.addSeparator();
+		file.add(loadText);
+		file.add(saveText);
+		file.addSeparator();		
+		file.add(exitItem);
+		
+		//for check in menu 
+		checkIn.add(rv);
+		checkIn.add(tent);
+		
+		//set the action listeners
+		rv.addActionListener(this);
+		tent.addActionListener(this);
+		load.addActionListener(this);
+		exitItem.addActionListener(this);
+		save.addActionListener(this);
+		loadText.addActionListener(this);
+		saveText.addActionListener(this);
+		undo.addActionListener(this);
+		delete.addActionListener(this);
+
+		//set up the menu bar for file and checking in
+		menuBar = new JMenuBar();
+		menuBar.add(file); 
+		menuBar.add(checkIn);
+		setJMenuBar(menuBar);
+
+		//add in the listed table 
+		jListTable = new JTable(model);
+		
+		//add onto a scroll pane
+		 scroll = new JScrollPane(jListTable);
+		 
+		 panel.add(undo);
+		 panel.add(delete);
+
+		//this.repaint(); //is this needed??
+		// add scrollPane and everything it's holding inside the frame
+		this.add(scroll, BorderLayout.NORTH);
+		//add the undo and delete button
+		this.add(panel, BorderLayout.SOUTH);
+
+		setVisible(true);
+		setSize(800,500);
+
+
+	}
+/***********************************************************************
+ * This main class will start up the GUI inside the program
+ **********************************************************************/
+	public static void main (String[] args) {
+		new GUICampingReg();
+	}
+
+/***********************************************************************
+ * this method will be the listener for the buttons used with 
+ * ActionLisener
+ **********************************************************************/
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		//open under serialized file
+		if(load == e.getSource()){
+			
+			JFileChooser chooser = new JFileChooser();
+			int status = chooser.showOpenDialog(null);
+			if (status == JFileChooser.APPROVE_OPTION) {
+				String filename = chooser.getSelectedFile().getAbsolutePath();
+				model.loadFromSerialized(filename);
+		}
+		}
+		//save under a serialized file
+		if(save == e.getSource()){
+			JFileChooser chooser = new JFileChooser();
+			int status = chooser.showSaveDialog(null);
+			if (status == JFileChooser.APPROVE_OPTION) {
+				String filename = chooser.getSelectedFile().getAbsolutePath();
+				model.saveAsSerialized(filename);
+			
+		}
+		}
+		
+		// load from txt
+		if(loadText == e.getSource()){
+			
+		}
+		
+		//save from txt
+		if(saveText == e.getSource()){
+			
+			
+		}
+		//exit campingReg
+		if(exitItem == e.getSource()){
+			System.exit(-1);
+		}
+		//check in the rv
+		if(rv == e.getSource()){
+			checkRv = new DialogCheckInRv();
+		}
+		
+		//check in the tent
+		if(tent == e.getSource()){
+			checkTent = new DialogCheckInTent();
+		}
+		
+		//undo a list
+		if(undo == e.getSource()){
+
+		}
+		
+		//delete a list
+		if(delete == e.getSource()){
+			
+		}
+		
+	}
+
+}

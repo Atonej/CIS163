@@ -1,0 +1,52 @@
+package camping;
+
+import java.util.GregorianCalendar;
+
+/***********************************************************************
+ * This class inherit the properties of Site to incorporate an RV in the 
+ * camp site
+ * 
+ * @author Tiesha Anderson, Atone Joryman, Jessica Ritcksgers 
+ * @version Fall 2017 
+ **********************************************************************/
+public class RV extends Site {
+	/**for saving and loading a file**/
+	private static final long serialVersionUID = 1L;
+	
+	/** Represents the power supplied to the site */
+	private int power;   // 30, 40, 50 amps of service.
+
+/***********************************************************************
+ * This constructor will take in the parameters of its parent and add it 
+ * to the super class 
+ * @param the name of the person reserving the site
+ * @param using GregorianCalender give the time this person checked in
+ * @param of type integer give the number of days staying 
+ * @param give the position in line the site is in of type int
+ **********************************************************************/
+	public RV(String nameReserving, GregorianCalendar checkIn,
+			int daysStaying, int siteNumber) {
+		super(nameReserving, checkIn, daysStaying, siteNumber);
+		// TODO Auto-generated constructor stub
+	}
+
+/***********************************************************************
+* Getter method for power the RV will exert 
+* @return the power of the RV
+***********************************************************************/
+	public int getPower() {
+		return power;
+	}
+
+/***********************************************************************
+* Setter method for power the RV will exert 
+* @param the power of the RV
+***********************************************************************/
+	public void setPower(int power) {
+		this.power = power;
+	}
+	   // add constructor
+	   // add getter, setter methods
+
+	
+}

@@ -1,0 +1,104 @@
+package camping;
+
+import java.awt.GridLayout;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import project4.BlueRay;
+import project4.DVD;
+
+/***********************************************************************
+ * This will be a pop up dialog within the GUICampingReg class to allow 
+ * the use of checking in under a RV
+ * 
+ * @author Tiesha Anderson, Atone Joryman, Jessica Ritcksgers 
+ * @version Fall 2017 
+ **********************************************************************/
+public class DialogCheckInRv extends JDialog {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private JLabel lblName = new JLabel("Name of Reserver: ");
+	private JLabel lblOccupied = new JLabel("Occupied on Date: ");
+	private JLabel lblStaying = new JLabel("Days Planning on Staying: ");
+	private JLabel lblSiteNum = new JLabel("Requested Site Number: ");
+	private JLabel lblPower = new JLabel("Type of Power in Amps: ");
+	private JTextField nameTxt;
+	private JTextField OccupiedOnTxt;
+	private JTextField stayingTxt;
+	private JTextField siteNumberTxt;
+	private JComboBox powerTxt;
+	private JButton okButton;
+	private JButton cancelButton;
+	private boolean closeStatus;
+	private Site unit;
+	
+	private JPanel dialog;
+
+	DialogCheckInRv(JFrame){
+		//used to process dialog before setting visib
+		setModal(true);
+		//make new panel
+		dialog = new JPanel();
+		dialog.setLayout(new GridLayout(5,2));
+		
+		//display of list
+		dialog.add(new JLabel("Your Name:"));
+		name = new JTextField("Jebron Lames");
+		dialog.add(name);
+		
+		dialog.add(new JLabel("Title of Movie:"));
+		title = new JTextField("Avengers");
+		dialog.add(title);
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+		Date today = new Date();
+		
+		dialog.add(new JLabel("Rented on Date:"));
+		rentDate = new JTextField(sdf.format(today));
+		dialog.add(rentDate);
+		
+		//set the date format to be into the current day
+		//conversion from miliseconds
+		today.setTime(today.getTime() + 1*24*60*60*1000);
+		dialog.add(new JLabel("Due on Date:"));
+		dueDate = new JTextField(sdf.format(today));
+		dialog.add(dueDate);
+		
+		rent = new JButton("Rent");
+		dialog.add(rent);
+		rent.addActionListener(this);
+		
+		cancel = new JButton("Cancel");
+		dialog.add(cancel);
+		cancel.addActionListener(this);
+		add(dialog);
+		setSize(500,500);
+		setVisible(true);
+	}
+	
+/***********************************************************************
+ * getter method for the renter DVD
+ * @return rental the dvd that was rented
+***********************************************************************/
+	public DVD getRentalDVD(){
+		return rentalD;
+	}
+	
+/***********************************************************************
+* getter method for the bluray rented
+* @return rental2 the bluray that was rented
+***********************************************************************/
+	public BlueRay getRentalBlueRay(){
+		return rentalB;
+	}
+}

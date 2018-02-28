@@ -1,0 +1,31 @@
+package camping;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
+/***********************************************************************
+ * This will be a pop up dialog within the GUICampingReg class to allow 
+ * the use of checking in under a Tent
+ * 
+ * @author Tiesha Anderson, Atone Joryman, Jessica Ritcksgers 
+ * @version Fall 2017 
+ **********************************************************************/
+public class DialogCheckInTent extends JDialog{
+
+	private JLabel lblName = new JLabel("Name of Reserver: ");
+	private JLabel lblOccupied = new JLabel("Occupied on Date: ");
+	private JLabel lblStaying = new JLabel("Days Planning on Staying: ");
+	private JLabel lblSiteNum = new JLabel("Requested Site Number: ");
+	private JLabel lblTenters = new JLabel("Number of Tenters: ");
+	private JTextField nameTxt;
+	private JTextField OccupiedOnTxt;
+	private JTextField stayingTxt;
+	private JTextField siteNumberTxt;	
+	private JButton okButton;
+	private JButton cancelButton;
+	private boolean closeStatus;
+	private Site unit;
+}

@@ -1,0 +1,539 @@
+
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.EmptyStackException;
+import java.util.GregorianCalendar;
+import java.util.Scanner;
+import java.util.Stack;
+
+import javax.swing.JOptionPane;
+import javax.swing.table.AbstractTableModel;
+
+/**********************************************************************
+ * SiteModel - Creates the model that the camp sites interact with.
+ * Can add, remove, undo, display, and modify the lists.
+ *  
+ * @version November 1 2017
+ *********************************************************************/
+
+public class SiteModel extends AbstractTableModel{
+	
+	//????????????????????????????????????????????????????????????????????????????????//
+	//TODO Currently, there are some poorly named local variables, such as Site t. 
+	//Ensure that there are no single letter named variables. (Variables such as i and j
+	//in for loops are okay, though.)
+	
+	private static final long serialVersionUID = 1L;
+
+	/** Constant for number of columns*/
+	private final int COLUMN_COUNT = 5;
+	
+	/** Constant for amount of sites*/
+	private final int SITE_AMOUNT = 5; 
+
+	/** Number of sites used in saving and loading*/
+	private int countSites;
+
+	/** ArrayList of Sites (RV or Tents)*/
+	private ArrayList<Site> listSites;
+	
+	/** Array of Strings for name of columns*/
+	private String[] columnNames = { "Name Reserving", "Checked In",
+			"Days Staying", "Site #", "Tent/RV Info" };
+	
+	/** SiteDates variable to check if reserved*/
+	private SiteDates listDates;
+	
+	/** Stack of strings for actions to undo*/
+	private Stack<String> undoActions;
+	
+	/** Stack of sites to undo*/
+	private Stack<Site> undoSites;
+	
+	/** Stack of index*/
+	private Stack<Integer> index;
+	
+	/******************************************************************
+	 * Constructor method for SiteModel class. Instantiates a new
+	 * ArrayList for sites (Takes both Tent and RV classes)
+	 * 0(1)
+	 *****************************************************************/
+	public SiteModel() {
+		listSites = new ArrayList<Site>();
+		listDates = new SiteDates();
+		undoSites = new Stack<Site>();
+		undoActions = new Stack<String>();
+		index = new Stack<Integer>();
+	}
+	
+	/******************************************************************
+	 * Method for AbstractTableModel class that returns amount
+	 * of rows needed for siteModel based on siteList size
+	 * @return returns the size of the site list, which is the amount
+	 * 			of checked in sites.
+	 * 0(1)
+	 *****************************************************************/
+	public int getRowCount() {
+		return listSites.size();
+	}
+	
+	/******************************************************************
+	 * Method for AbstractTableModel class that returns amount of 
+	 * columns, which is always 5 in this project.
+	 * @return	amount of columns, which is a constant.
+	 * 0(1)
+	 *****************************************************************/
+	public int getColumnCount() {
+		return COLUMN_COUNT;
+	}
+	
+	/******************************************************************
+	 * Returns name of columns for AbstractTableModel
+	 * @param  column number to get name for
+	 * @return string of column name 
+	 * 0(1)
+	 *****************************************************************/
+	public String getColumnName(int col) {
+		return columnNames[col];
+	}
+	
+	/******************************************************************
+	 * Calls dialogue box for Tent to add new Tent listing, and
+	 * updates the SiteModel to display it.
+	 * @throws ParseException Error in parsing dates
+	 * @throws InvalidDate	Date out of range
+	 * @param  tentRental tent to be added to site
+	 * 0(1)
+	 *****************************************************************/
+	public void addTent(Tent tentRental) {
+		
+		try {
+			if(!listDates.isReserved(tentRental)) {
+				
+				//Add undo information to stacks
+				undoSites.push(tentRental);
+				undoActions.push("add");
+				
+				listDates.reserve(tentRental);
+				listSites.add(tentRental);
+				fireTableRowsUpdated(listSites.size(), COLUMN_COUNT);
+				displayCost(tentRental);
+			}
+			else
+				JOptionPane.showMessageDialog(null, 
+						"Site already reserved!");
+
+		} catch (ParseException e) {
+			System.out.println("ERROR");
+		} catch (InvalidDate e) {
+			JOptionPane.showMessageDialog(null, 
+					"ERROR: Date out of range");
+		}
+
+	}
+	
+	/******************************************************************
+	 * Calls dialogue box for RV to add new Tent listing, and
+	 * updates the SiteModel to display it.
+	 * @param RVRental RV to add to list of sites
+	 * 0(1)
+	 *****************************************************************/
+	public void addRV(RV RVRental) {
+		
+		try {
+			if(!listDates.isReserved(RVRental)) {
+				
+				//Add undo stacks
+				undoSites.push(RVRental);
+				undoActions.push("add");;
+				listDates.reserve(RVRental);
+				listSites.add(RVRental);
+				fireTableRowsUpdated(listSites.size(), COLUMN_COUNT);
+				displayCost(RVRental);
+			}
+			else
+				JOptionPane.showMessageDialog(null, 
+						"Site already reserved!");
+
+		} catch (ParseException e) {
+			JOptionPane.showMessageDialog(null,
+					"ERROR: Invalid Date");
+		} catch (InvalidDate e) {
+			JOptionPane.showMessageDialog(null, 
+					"ERROR: Date out of range");
+		}
+
+		
+	}
+	
+	/******************************************************************
+	 * Deletes the selected row(s) from the table and listSites
+	 * and also adds to the undo list.
+	 * @param row  integer for row to delete
+	 * 0(n^2)
+	 *****************************************************************/
+	
+	//?????????????????????????????????????????????????????????????????????????///
+	//TODO Currently, this delete method can only handle one row deletion.
+	//Make it so that you can delete multiple rows at once. A suggestion is to use
+	//getSelectedRows() in the GUI to send a array of integers for selected rows, and
+	//change deleteReservation to accept an array of integers as a parameter.
+	//Be careful with indexes changing after an element of an ArrayList is removed.
+	
+	public void deleteReservation(int row) {
+
+		undoSites.push(listSites.get(row));
+		undoActions.push("remove");
+		index.push(row);
+		listDates.removeReservation(listSites.get(row));
+		listSites.remove(row);
+
+		fireTableDataChanged();
+	}
+	
+	/******************************************************************
+	 * Undoes the last action performed including adding, deleting,
+	 * and loading text and serial files.
+	 * 0(1)
+	 *****************************************************************/
+
+	public void undo() {
+		try {
+			undoActions.peek();
+			String action = undoActions.pop();
+			
+			//If action was to add, remove it instead
+			if(action.equals("add")) {
+				Site undone = undoSites.pop();
+				listSites.remove(listSites.indexOf(undone));
+				listDates.removeReservation(undone);
+			}
+			
+			//If action was to remove, re-add it.
+			else if(action.equals("remove")) {
+				Site undone = undoSites.pop();
+				listSites.add(index.pop(), undone);
+				listDates.reserve(undone);
+			}
+			fireTableDataChanged();
+		}
+		catch(EmptyStackException e) {
+			JOptionPane.showMessageDialog
+			(null, "Nothing to Undo");
+		}
+		catch(ParseException e) {
+			JOptionPane.showMessageDialog
+			(null, "ERROR Parse Exception");
+		}
+	}
+	
+	/******************************************************************
+	 * Gets site availability for parameter date entered
+	 * @param date date to check site availability
+	 * @return boolean array, true if reserved, false if open.
+	 * 0(1)
+	 *****************************************************************/
+	public boolean[] getArrayReserves(String date) {
+		return listDates.reservedForDay(date);
+	}
+	
+	//??????????????????????????????????????????????????????????????????????????????????//
+	//TODO: displayCost should not be in SiteModel. Because
+    // the model class should have no output statements.
+    // Put it in the GUICampingReg instead.
+	// A way of doing this is by returning a boolean in the addTent and addRV methods
+	// to ensure a site was actually added.
+    // Important, this are several places where the Model class has output statements,
+	// move them out of the model class into the GUI
+	
+	/******************************************************************
+	 * Displays the cost of the requested reservation using polymorphic
+	 * cost methods.
+	 * @param s Site to display cost for site
+	 * 0(1)
+	 *****************************************************************/
+	public void displayCost(Site s) {
+		JOptionPane.showMessageDialog
+		(null, "You owe: " + s.cost() + " Dollars");
+	}
+	
+	/******************************************************************
+	 * Tests site values to ensure integers are not out of ranges.
+	 * @param site
+	 * @return boolean true if good input, false if invalid input.
+	 * 0(1)
+	 *****************************************************************/
+	public boolean isValidInput(Site site) {
+		
+		//Test site number
+		if(site.getSiteNum() <= 0 || site.getSiteNum() > SITE_AMOUNT)
+			return false;
+			
+		//Test days staying
+		if(site.getDaysStaying() <= 0)
+			return false;
+		
+		//Test number of people at tent site
+		if(site instanceof Tent) {
+			if(((Tent)site).getNumTenters() <= 0)
+				return false;
+		}
+		
+		//Test power usage at RV
+		else if(site instanceof RV) {
+			if (((RV)site).getPow() != 30  &&
+				((RV)site).getPow() != 40  &&
+				((RV)site).getPow() != 50 )
+				
+				return false;
+		}
+		return true;
+	}
+
+	/******************************************************************
+	 * Method to display values on the table based on the row and 
+	 * column accessed based on parameters
+	 * @param row number of row find variable of list
+	 * @param col number of column to find what value to print
+	 * @return String object of what to display in row/column cell
+	 * 0(1)
+	 *****************************************************************/
+	public Object getValueAt(int row, int col) {
+		
+		String temp = "";
+		
+		//Switch statements for all 5 columns (0,1,2,3,4)
+		switch(col) {
+			case 0:
+				temp = listSites.get(row).getNameReserving();
+				break;
+			case 1:
+				SimpleDateFormat formatCal = 
+					new SimpleDateFormat("M/d/yyyy");
+				temp = formatCal.format
+						(listSites.get(row).getCheckIn().getTime());
+				break;
+			case 2:
+				temp = listSites.get(row).getDaysStaying() + "";
+				break;
+			case 3:
+				temp = listSites.get(row).getSiteNum() + "";
+				break;	
+			case 4:
+				if(listSites.get(row) instanceof Tent) 
+					temp = (((Tent) listSites.get(row)).
+							getNumTenters() + " Campers");
+				else if(listSites.get(row) instanceof RV)
+					temp = (((RV) listSites.get(row)).
+							getPow() + " Amps");
+				break;
+		}
+		
+		return temp;
+	}
+	
+	/*****************************************************************
+	 * Calls fullyReservedSites of listDates to return all dates
+	 * where all five sites are reserved
+	 * @return ArrayList of strings of fully booked dates
+	 * 0(n)
+	 ****************************************************************/
+	public ArrayList<String> getBookedDays(){
+		return listDates.fullyReservedSites();
+	}
+	
+	/*****************************************************************
+	 * Saves off the list of Sites to a text file.
+	 * @param filename name of file to save text to
+	 * 0(n)
+	 ****************************************************************/
+	public void saveText(String filename) {
+		
+		try {
+			PrintWriter out = new PrintWriter
+					(new BufferedWriter(new FileWriter(filename)));
+			out.println(listSites.size());
+			
+			for (int i = 0; i < listSites.size(); i++) {
+				
+				// listSites is an ArrayList<Site>
+				Site SiteUnit = listSites.get(i);
+
+				// Output the class name.
+				out.println(SiteUnit.getClass().getName());
+
+				// Output the Site Name
+				out.println(SiteUnit.getNameReserving());
+				
+				SimpleDateFormat formatCal = new SimpleDateFormat("M/d/yyyy");
+				String temp = formatCal.format(listSites.get(i).getCheckIn().getTime());
+				out.println(temp);
+				
+				// Output the days staying
+				out.println(SiteUnit.getDaysStaying());
+				// Output the site number
+				out.println(SiteUnit.getSiteNum());
+				
+				if(SiteUnit instanceof Tent) 
+					out.println(((Tent) SiteUnit).getNumTenters());
+				if(SiteUnit instanceof RV) 
+					out.println(((RV) SiteUnit).getPow());
+			}
+			out.close();
+		} 
+		catch (IOException ex) {
+			System.out.println("IO Error!");
+		}
+	}
+
+	/******************************************************************
+	 * Loads a file named from parameter. Checks for valid file format,
+	 * valid numbers, and valid dates. If any errors are found, clear
+	 * arrayList and listDates
+	 * 
+	 * @param filename name of file to load
+	 * 0(n)
+	 *****************************************************************/
+	public void loadText(String filename) {
+		ArrayList<Site> tempList = new ArrayList<Site>();
+		Site t;
+		File inFile = new File(filename);
+		try {
+			Scanner sc = new Scanner(inFile);
+			// Read first line, which is amount of sites.
+			String line = sc.nextLine();
+			listDates = new SiteDates();
+			countSites = Integer.parseInt(line);
+			int i = 0;
+			while (i < countSites && sc.hasNext()) {
+
+				String className = sc.nextLine();
+				if ("campingsystem.Tent".equals(className)) 
+					t = new Tent();
+				else if ("campingsystem.RV".equals(className))
+					t = new RV();
+				else {
+					sc.close();
+					throw new NumberFormatException();
+				}
+				t.setNameReserving(sc.nextLine());
+				DateFormat df = new SimpleDateFormat("M/d/yyyy");
+				java.util.Date date = null;
+				try {
+					date = df.parse(sc.nextLine());
+					GregorianCalendar cal = new GregorianCalendar();
+					cal.setTime(date);
+					t.setCheckIn(cal);
+				}
+				catch (Exception e1) {
+					sc.close();
+					throw new NumberFormatException();	
+				}
+				t.setDaysStaying(Integer.parseInt(sc.nextLine()));
+				t.setSiteNum(Integer.parseInt(sc.nextLine()));
+				if (t instanceof Tent)
+					((Tent) t).setNumTenters
+					(Integer.parseInt(sc.nextLine()));
+				else if (t instanceof RV)
+					((RV) t).setPow(Integer.parseInt(sc.nextLine()));
+				
+				if(listDates.isReserved(t)) {
+					sc.close();
+					throw new InvalidDate();
+				}
+				if (isValidInput(t)) {
+					tempList.add(t);
+					listDates.reserve(t);
+				}
+				else {
+					sc.close();
+					throw new IllegalArgumentException();
+				}
+				++i;
+			}
+			
+			listSites = tempList;
+			fireTableDataChanged();
+			sc.close();
+		
+		}
+		catch(FileNotFoundException e) {
+			JOptionPane.showMessageDialog (null, "Cannot Find File!");
+			listDates = new SiteDates();
+			listSites.clear();
+		}
+		catch(InvalidDate e) {
+			JOptionPane.showMessageDialog(null, "Invalid Dates");
+			listDates = new SiteDates();
+			listSites.clear();
+		}
+		catch(Exception e) {
+			JOptionPane.showMessageDialog(null, "Invalid File!");
+			listDates = new SiteDates();
+			listSites.clear();
+		}
+		fireTableDataChanged();
+		
+	}
+	
+	/******************************************************************
+	 * Saves siteList as serialized file.
+	 * @param filename name of file to save to
+	 * 0(1)
+	 *****************************************************************/
+	public void saveAsSerialized(String filename) {
+		try {
+			FileOutputStream fos = new FileOutputStream(filename);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(listSites);
+			oos.close();
+		}
+		catch(IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	/******************************************************************
+	 * Loads from serialized file. Checks for invalid file format.
+	 * If error, do not load the file
+	 * @param filename name of file to load from.
+	 * 0(1)
+	 *****************************************************************/
+	@SuppressWarnings("unchecked")
+	public void loadFromSerialized(String filename) {
+		try {
+			FileInputStream fileIn = new FileInputStream(filename);
+			ObjectInputStream in = new ObjectInputStream(fileIn);
+			listSites = (ArrayList<Site>) in.readObject();
+			in.close();
+			fireTableRowsInserted(0, listSites.size());
+		}
+		catch(IOException e) {
+			JOptionPane.showMessageDialog
+			(null, "Invalid File!");
+		}
+		catch(ClassNotFoundException e) {
+			JOptionPane.showMessageDialog
+			(null, "Invalid File!");
+		}
+		catch(Exception e) {
+			JOptionPane.showMessageDialog
+			(null, "Invalid File!");
+		}
+		
+	}
+}
